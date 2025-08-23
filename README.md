@@ -11,13 +11,13 @@ Latest tested Odin version: `dev-2024-09:c6b551d2c`
 
 ## How to Use
 1. Copy the [steamworks](steamworks/) folder into your project
-2. Put `steam_api64.dll` next to your exe
+2. Copy `steam_api64.dll` (not the `steam_api.dll`!) next to your exe
 3. Create a `steam_appid.txt` with your steam app ID. Use `480` for testing purposes
 
 Take a look at the [example](example/example.odin) to see the API usage.
 
 ## Example
-- put `steam_api64.dll` to the example folder (Windows)
+- copy `steam_api64.dll` to the example folder (Windows)
 - `cd example`
 - `odin run .`
 
