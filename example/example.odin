@@ -50,9 +50,27 @@ main :: proc() {
         raylib.ClearBackground(raylib.DARKBLUE)
         raylib.DrawFPS(2, 2)
         raylib.DrawText("Press Shift+Tab to open Steam Overlay", 2, 22 * 2, 20, raylib.WHITE)
-        raylib.DrawText(raylib.TextFormat("Friends_GetPersonaName: %s", steam.Friends_GetPersonaName(steam.Friends())), 2, 22 * 4, 20, raylib.WHITE)
-        raylib.DrawText(raylib.TextFormat("Friends_GetPersonaState: %s", steam.Friends_GetPersonaState(steam.Friends())), 2, 22 * 5, 20, raylib.WHITE)
-        raylib.DrawText(raylib.TextFormat("Number of current players (refresh with N key): %i", number_of_current_players), 2, 22 * 6, 20, raylib.WHITE)
+        raylib.DrawText(
+            raylib.TextFormat("Friends_GetPersonaName: %s", steam.Friends_GetPersonaName(steam.Friends())),
+            2,
+            22 * 4,
+            20,
+            raylib.WHITE,
+        )
+        raylib.DrawText(
+            raylib.TextFormat("Friends_GetPersonaState: %s", steam.Friends_GetPersonaState(steam.Friends())),
+            2,
+            22 * 5,
+            20,
+            raylib.WHITE,
+        )
+        raylib.DrawText(
+            raylib.TextFormat("Number of current players (refresh with N key): %i", number_of_current_players),
+            2,
+            22 * 6,
+            20,
+            raylib.WHITE,
+        )
         run_steam_callbacks()
 
         if raylib.IsKeyPressed(.N) {
@@ -93,7 +111,14 @@ run_steam_callbacks :: proc() {
             resize(&temp_mem, int(callback.cubParam))
             if temp_call_res, ok := mem.alloc(int(callback.cubParam), allocator = context.temp_allocator); ok == nil {
                 bFailed: bool
-                if steam.ManualDispatch_GetAPICallResult(steam_pipe, call_completed.hAsyncCall, temp_call_res, callback.cubParam, callback.iCallback, &bFailed) {
+                if steam.ManualDispatch_GetAPICallResult(
+                    steam_pipe,
+                    call_completed.hAsyncCall,
+                    temp_call_res,
+                    callback.cubParam,
+                    callback.iCallback,
+                    &bFailed,
+                ) {
                     // Dispatch the call result to the registered handler(s) for the
                     // call identified by call_completed->m_hAsyncCall
                     fmt.println("   call_completed", call_completed)

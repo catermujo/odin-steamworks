@@ -1,12 +1,3 @@
-*.exe
-*.pdb
-*.lib
-*.dll
-*.exp
-*.so
-*.dylib
-*.obj
-
 ols.json
 
-!steamworks/redistributable_bin/**/*.*
+!redist
