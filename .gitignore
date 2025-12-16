@@ -1,3 +1,8 @@
 ols.json
 
 !redist
+*.bin
+*.exe
+*.dll
+*.dylib
+*.so

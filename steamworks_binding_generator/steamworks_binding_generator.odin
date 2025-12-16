@@ -165,7 +165,7 @@ main :: proc() {
                 println(&finalBuf, "} // foreign lib")
 
                 fmt.println("Writing file ...")
-                if !os.write_entire_file("steamworks/steamworks_generated.odin", finalBuf.buf[:]) {
+                if !os.write_entire_file("steamworks_generated.odin", finalBuf.buf[:]) {
                     panic("Couldn't write file.")
                 }
             }
@@ -298,3 +298,4 @@ printStruct :: proc(buf: ^strings.Builder, methodBuf: ^strings.Builder, struct_:
     }
 
 }
+
