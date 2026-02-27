@@ -11,13 +11,19 @@ Latest tested Odin version: `dev-2024-09:c6b551d2c`
 
 ## How to Use
 1. Copy the [steamworks](steamworks/) folder into your project
-2. Copy `steam_api64.dll` (not the `steam_api.dll`!) next to your exe
+2. Copy the platform runtime library next to your exe:
+   - Windows: `steam_api64.dll` (not `steam_api.dll`)
+   - Linux: `libsteam_api.so`
+   - macOS: `libsteam_api.dylib`
 3. Create a `steam_appid.txt` with your steam app ID. Use `480` for testing purposes
 
 Take a look at the [example](example/example.odin) to see the API usage.
 
 ## Example
-- copy `steam_api64.dll` to the example folder (Windows)
+- ensure the runtime library exists in `example/`:
+  - Windows: copy `../redist/win64/steam_api64.dll` to `example/`
+  - Linux: symlink `example/libsteam_api.so -> ../redist/linux64/libsteam_api.so`
+  - macOS: symlink `example/libsteam_api.dylib -> ../redist/osx/libsteam_api.dylib`
 - `cd example`
 - `odin run .`
 

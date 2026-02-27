@@ -12,6 +12,7 @@ import rl "vendor:raylib"
 number_of_current_players: int
 g_friends: ^steam.IFriends
 g_client: ^steam.IClient
+has_current_players_value: bool
 
 main :: proc() {
     context.logger = log.create_console_logger()
@@ -43,6 +44,8 @@ main :: proc() {
 
     // lobbyCall := steam.Matchmaking_RequestLobbyList(steam.Matchmaking())
 
+    request_number_of_current_players()
+
     rl.InitWindow(800, 480, "Odin Steamworks Example")
     defer rl.CloseWindow()
     rl.SetTargetFPS(60)
@@ -56,13 +59,23 @@ main :: proc() {
         rl.DrawText("Press Shift+Tab to open Steam Overlay", 2, 22 * 2, 20, rl.WHITE)
         rl.DrawText(rl.TextFormat("Friends_GetPersonaName: %s", user), 2, 22 * 4, 20, rl.WHITE)
         rl.DrawText(rl.TextFormat("Friends_GetPersonaState: %s", state), 2, 22 * 5, 20, rl.WHITE)
-        rl.DrawText(
-            rl.TextFormat("Number of current players (refresh with N key): %i", number_of_current_players),
-            2,
-            22 * 6,
-            20,
-            rl.WHITE,
-        )
+        if has_current_players_value {
+            rl.DrawText(
+                rl.TextFormat("Number of current players (refresh with N key): %i", number_of_current_players),
+                2,
+                22 * 6,
+                20,
+                rl.WHITE,
+            )
+        } else {
+            rl.DrawText(
+                "Number of current players (refresh with N key): loading...",
+                2,
+                22 * 6,
+                20,
+                rl.WHITE,
+            )
+        }
         run_steam_callbacks: {
             // temp_mem := make([dynamic]byte, context.temp_allocator)
 
@@ -76,31 +89,30 @@ main :: proc() {
                     log.debug("CallResult: ", callback)
 
                     call_completed := cast(^steam.SteamAPICallCompleted)callback.pubParam
-                    // resize(&temp_mem, int(callback.cubParam))
-                    temp_call_res := make([^]byte, int(callback.cubParam), allocator = context.temp_allocator)
+                    temp_call_res := make([]byte, int(call_completed.cubParam), allocator = context.temp_allocator)
                     bFailed: bool
                     if steam.ManualDispatch_GetAPICallResult(
                         steam_pipe,
                         call_completed.hAsyncCall,
-                        &temp_call_res,
-                        callback.cubParam,
-                        callback.iCallback,
+                        raw_data(temp_call_res),
+                        i32(call_completed.cubParam),
+                        call_completed.iCallback,
                         &bFailed,
                     ) {
                         // Dispatch the call result to the registered handler(s) for the
                         // call identified by call_completed->m_hAsyncCall
                         log.debug("   call_completed", call_completed)
                         if call_completed.iCallback == .NumberOfCurrentPlayers {
-                            using res := cast(^steam.NumberOfCurrentPlayers)temp_call_res
+                            using res := cast(^steam.NumberOfCurrentPlayers)raw_data(temp_call_res)
 
                             log.debug("[get_number_of_current_players] success:", bSuccess)
                             if bFailed || !bool(bSuccess) {
                                 log.debug("get_number_of_current_players failed.")
-                                return
+                            } else {
+                                log.debug("[get_number_of_current_players] Number of players currently playing:", cPlayers)
+                                number_of_current_players = int(cPlayers)
+                                has_current_players_value = true
                             }
-
-                            log.debug("[get_number_of_current_players] Number of players currently playing:", cPlayers)
-                            number_of_current_players = int(cPlayers)
                         }
                     }
 
@@ -121,9 +133,18 @@ main :: proc() {
         }
 
         if rl.IsKeyPressed(.N) {
-            log.debug("[get_number_of_current_players] Getting number of current players.")
-            log.debug("get number of current players:", steam.UserStats_GetNumberOfCurrentPlayers(steam.UserStats()))
+            request_number_of_current_players()
         }
+    }
+}
+
+request_number_of_current_players :: proc() {
+    log.debug("[get_number_of_current_players] Getting number of current players.")
+    call := steam.UserStats_GetNumberOfCurrentPlayers(steam.UserStats())
+    if call == steam.uAPICallInvalid {
+        log.debug("get number of current players: invalid api call")
+    } else {
+        log.debug("get number of current players:", call)
     }
 }
 
@@ -136,4 +157,3 @@ steam_debug_text_hook :: proc "c" (severity: i32, debugText: cstring) {
         runtime.debug_trap()
     }
 }
-
