@@ -1405,6 +1405,13 @@ SteamRemotePlayTogetherGuestInvite_t :: struct #align (CALLBACK_ALIGN) {
     szConnectURL: [1024]u8,
 }
 
+SteamRemotePlaySessionAvatarLoaded :: struct #align (CALLBACK_ALIGN) {
+    unSessionID: RemotePlaySessionID,
+    iImage:      i32,
+    iWide:       i32,
+    iTall:       i32,
+}
+
 SteamNetworkingMessagesSessionRequest :: struct #align (CALLBACK_ALIGN) {
     identityRemote: SteamNetworkingIdentity,
 }
@@ -3581,7 +3588,8 @@ EParentalFeature :: enum i32 {
     SiteLicense          = 13,
     KioskMode_Deprecated = 14,
     BlockAlways          = 15,
-    // Max           = 16,
+    Desktop              = 16,
+    // Max           = 17,
 }
 
 ESteamDeviceFormFactor :: enum i32 {
@@ -3901,9 +3909,13 @@ ESteamNetworkingConfigValue :: enum i32 {
     SDRClient_MinPingsBeforePingAccurate           = 21,
     SDRClient_SingleSocket                         = 22,
     SDRClient_ForceRelayCluster                    = 29,
-    SDRClient_DebugTicketAddress                   = 30,
+    SDRClient_DevTicket                            = 30,
+    SDRClient_DebugTicketAddress                   = SDRClient_DevTicket,
     SDRClient_ForceProxyAddr                       = 31,
     SDRClient_FakeClusterPing                      = 36,
+    SDRClient_LimitPingProbesToNearestN            = 60,
+    SDRClient_EnableTOSProbes                      = 998,
+    ECN                                            = 999,
     LogLevel_AckRTT                                = 13,
     LogLevel_PacketDecode                          = 14,
     LogLevel_Message                               = 15,
@@ -4236,7 +4248,8 @@ SteamNetConnectionRealTimeStatus :: struct #align (CALLBACK_ALIGN) {
     cbPendingReliable:         i32,
     cbSentUnackedReliable:     i32,
     usecQueueTime:             SteamNetworkingMicroseconds,
-    reserved:                  [16]u32,
+    usecMaxJitter:             i32,
+    reserved:                  [15]u32,
 }
 
 SteamNetConnectionRealTimeLaneStatus :: struct #align (CALLBACK_ALIGN) {
@@ -4288,7 +4301,7 @@ GameSearch :: SteamGameSearch_v001
 Parties :: SteamParties_v002
 RemoteStorage :: SteamRemoteStorage_v016
 UserStats :: SteamUserStats_v013
-Apps :: SteamApps_v008
+Apps :: SteamApps_v009
 Networking :: SteamNetworking_v006
 Screenshots :: SteamScreenshots_v003
 Music :: SteamMusic_v001
@@ -4300,7 +4313,7 @@ HTMLSurface :: SteamHTMLSurface_v005
 Inventory :: SteamInventory_v003
 Video :: SteamVideo_v007
 ParentalSettings :: SteamParentalSettings_v001
-RemotePlay :: SteamRemotePlay_v003
+RemotePlay :: SteamRemotePlay_v004
 NetworkingMessages_SteamAPI :: SteamNetworkingMessages_SteamAPI_v002
 NetworkingSockets_SteamAPI :: SteamNetworkingSockets_SteamAPI_v012
 NetworkingUtils_SteamAPI :: SteamNetworkingUtils_SteamAPI_v004
@@ -4603,7 +4616,7 @@ foreign lib {
     SteamParties_v002 :: proc() -> ^IParties ---
     SteamRemoteStorage_v016 :: proc() -> ^IRemoteStorage ---
     SteamUserStats_v013 :: proc() -> ^IUserStats ---
-    SteamApps_v008 :: proc() -> ^IApps ---
+    SteamApps_v009 :: proc() -> ^IApps ---
     SteamNetworking_v006 :: proc() -> ^INetworking ---
     SteamScreenshots_v003 :: proc() -> ^IScreenshots ---
     SteamMusic_v001 :: proc() -> ^IMusic ---
@@ -4615,7 +4628,7 @@ foreign lib {
     SteamInventory_v003 :: proc() -> ^IInventory ---
     SteamVideo_v007 :: proc() -> ^IVideo ---
     SteamParentalSettings_v001 :: proc() -> ^IParentalSettings ---
-    SteamRemotePlay_v003 :: proc() -> ^IRemotePlay ---
+    SteamRemotePlay_v004 :: proc() -> ^IRemotePlay ---
     SteamNetworkingMessages_SteamAPI_v002 :: proc() -> ^INetworkingMessages ---
     SteamNetworkingSockets_SteamAPI_v012 :: proc() -> ^INetworkingSockets ---
     SteamNetworkingUtils_SteamAPI_v004 :: proc() -> ^INetworkingUtils ---
@@ -5130,7 +5143,7 @@ foreign lib {
     Apps_BIsTimedTrial :: proc(self: ^IApps, punSecondsAllowed: ^u32, punSecondsPlayed: ^u32) -> bool ---
     Apps_SetDlcContext :: proc(self: ^IApps, nAppID: AppId) -> bool ---
     Apps_GetNumBetas :: proc(self: ^IApps, unAppID: AppId, pnAvailable: ^i32, pnPrivate: ^i32) -> i32 ---
-    Apps_GetBetaInfo :: proc(self: ^IApps, unAppID: AppId, iBetaIndex: i32, punFlags: ^u32, punBuildID: ^u32, pchBetaName: [^]byte, cchBetaName: i32, pchDescription: [^]byte, cchDescription: i32) -> bool ---
+    Apps_GetBetaInfo :: proc(self: ^IApps, unAppID: AppId, iBetaIndex: i32, punFlags: ^u32, punBuildID: ^u32, pchBetaName: [^]byte, cchBetaName: i32, pchDescription: [^]byte, cchDescription: i32, punLastUpdated: ^u32) -> bool ---
     Apps_SetActiveBeta :: proc(self: ^IApps, unAppID: AppId, pchBetaName: cstring) -> bool ---
 
     Networking_SendP2PPacket :: proc(self: ^INetworking, steamIDRemote: CSteamID, pubData: rawptr, cubData: u32, eP2PSendType: EP2PSend, nChannel: i32) -> bool ---
@@ -5378,6 +5391,9 @@ foreign lib {
     UGC_GetUserContentDescriptorPreferences :: proc(self: ^IUGC, pvecDescriptors: [^]EUGCContentDescriptorID, cMaxEntries: u32) -> u32 ---
     UGC_SetItemsDisabledLocally :: proc(self: ^IUGC, pvecPublishedFileIDs: ^PublishedFileId, unNumPublishedFileIDs: u32, bDisabledLocally: bool) -> bool ---
     UGC_SetSubscriptionsLoadOrder :: proc(self: ^IUGC, pvecPublishedFileIDs: ^PublishedFileId, unNumPublishedFileIDs: u32) -> bool ---
+    UGC_MarkDownloadedItemAsUnused :: proc(self: ^IUGC, nPublishedFileID: PublishedFileId) -> bool ---
+    UGC_GetNumDownloadedItems :: proc(self: ^IUGC) -> u32 ---
+    UGC_GetDownloadedItems :: proc(self: ^IUGC, pvecPublishedFileIDs: ^PublishedFileId, cMaxEntries: u32) -> u32 ---
     UGC_GetNumSupportedGameVersions :: proc(self: IUGC, handle: UGCQueryHandle, index: u32) -> u32 ---
     UGC_SetAdminQuery :: proc(self: IUGC, handle: UGCUpdateHandle, bAdminQuery: bool) -> bool ---
     UGC_SetRequiredGameVersions :: proc(self: IUGC, handle: UGCUpdateHandle, pszGameBranchMin: cstring, pszGameBranchMax: cstring) -> bool ---
@@ -5567,6 +5583,11 @@ foreign lib {
     RemotePlay_GetSessionCount :: proc(self: ^IRemotePlay) -> u32 ---
     RemotePlay_GetSessionID :: proc(self: ^IRemotePlay, iSessionIndex: i32) -> RemotePlaySessionID ---
     RemotePlay_GetSessionSteamID :: proc(self: ^IRemotePlay, unSessionID: RemotePlaySessionID) -> CSteamID ---
+    RemotePlay_BSessionRemotePlayTogether :: proc(self: ^IRemotePlay, unSessionID: RemotePlaySessionID) -> bool ---
+    RemotePlay_GetSessionGuestID :: proc(self: ^IRemotePlay, unSessionID: RemotePlaySessionID) -> u32 ---
+    RemotePlay_GetSmallSessionAvatar :: proc(self: ^IRemotePlay, unSessionID: RemotePlaySessionID) -> i32 ---
+    RemotePlay_GetMediumSessionAvatar :: proc(self: ^IRemotePlay, unSessionID: RemotePlaySessionID) -> i32 ---
+    RemotePlay_GetLargeSessionAvatar :: proc(self: ^IRemotePlay, unSessionID: RemotePlaySessionID) -> i32 ---
     RemotePlay_GetSessionClientName :: proc(self: ^IRemotePlay, unSessionID: RemotePlaySessionID) -> cstring ---
     RemotePlay_GetSessionClientFormFactor :: proc(self: ^IRemotePlay, unSessionID: RemotePlaySessionID) -> ESteamDeviceFormFactor ---
     RemotePlay_BGetSessionClientResolution :: proc(self: ^IRemotePlay, unSessionID: RemotePlaySessionID, pnResolutionX: ^int, pnResolutionY: ^int) -> bool ---
@@ -5800,7 +5821,6 @@ iSteamControllerCallbacks :: 2800
 iSteamUGCCallbacks :: 3400
 iSteamStreamClientCallbacks :: 3500
 iSteamMusicCallbacks :: 4000
-iSteamMusicRemoteCallbacks :: 4100
 iSteamGameNotificationCallbacks :: 4400
 iSteamHTMLSurfaceCallbacks :: 4500
 iSteamVideoCallbacks :: 4600
@@ -6232,6 +6252,7 @@ ICallback :: enum i32 {
     SteamRemotePlaySessionConnected                        = iSteamRemotePlayCallbacks + 1,
     SteamRemotePlaySessionDisconnected                     = iSteamRemotePlayCallbacks + 2,
     SteamRemotePlayTogetherGuestInvite_t                   = iSteamRemotePlayCallbacks + 3,
+    SteamRemotePlaySessionAvatarLoaded                     = iSteamRemotePlayCallbacks + 4,
 
 
     // From: isteamremotestorage.h
@@ -6551,4 +6572,3 @@ CallbackMsg :: struct #align (CALLBACK_ALIGN) {
     pubParam:   ^u8, // Points to the callback structure
     cubParam:   i32, // Size of the data pointed to by m_pubParam
 }
-

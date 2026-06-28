@@ -1,11 +1,4 @@
-ols.json
-
 !redist
 *.bin
 *.exe
-*.dll
-*.dylib
-*.so
-!example/libsteam_api.dylib
-!example/libsteam_api.so
-!example/steam_api64.dll
+sdk

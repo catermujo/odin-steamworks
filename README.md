@@ -5,7 +5,7 @@ Odin bindings for Valve's [Steamworks API](https://partner.steamgames.com/doc/sd
 
 the Steamworks API also includes the [Steam GameNetworkingSockets](https://github.com/ValveSoftware/GameNetworkingSockets)
 
-Current Steamworks SDK version: `1.60`
+Current Steamworks SDK version: `1.64`
 
 Latest tested Odin version: `dev-2024-09:c6b551d2c`
 
