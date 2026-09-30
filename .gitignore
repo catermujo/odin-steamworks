@@ -1,4 +1,4 @@
 !redist
 *.bin
 *.exe
-sdk
+!sdk/**

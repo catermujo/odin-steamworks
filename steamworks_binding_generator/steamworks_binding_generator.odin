@@ -13,7 +13,7 @@ main :: proc() {
         panic("No path provided. Please provide a path to the \'steam_api.json\'")
     }
 
-    if jsonData, jsonDataOk := os.read_entire_file_from_filename(os.args[1]); jsonDataOk {
+    if jsonData, err := os.read_entire_file(os.args[1], context.allocator); err == os.ERROR_NONE {
         if groups, err := json.parse(jsonData); err == .None {
             groups := groups.(json.Object)
 
@@ -165,7 +165,7 @@ main :: proc() {
                 println(&finalBuf, "} // foreign lib")
 
                 fmt.println("Writing file ...")
-                if !os.write_entire_file("steamworks_generated.odin", finalBuf.buf[:]) {
+                if os.write_entire_file("steamworks_generated.odin", finalBuf.buf[:]) != os.ERROR_NONE {
                     panic("Couldn't write file.")
                 }
             }
@@ -298,4 +298,3 @@ printStruct :: proc(buf: ^strings.Builder, methodBuf: ^strings.Builder, struct_:
     }
 
 }
-
