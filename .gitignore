@@ -2,3 +2,20 @@
 *.bin
 *.exe
 !sdk/**
+
+# DUMBAI: SteamCMD writes machine-local state into the SDK builder when it runs. Keep it out of vendor history.
+/sdk/tools/ContentBuilder/builder/.crash
+/sdk/tools/ContentBuilder/builder/appcache/
+/sdk/tools/ContentBuilder/builder/config/
+/sdk/tools/ContentBuilder/builder/logs/
+/sdk/tools/ContentBuilder/builder/package/
+/sdk/tools/ContentBuilder/builder/steamapps/
+/sdk/tools/ContentBuilder/builder/userdata/
+/sdk/tools/ContentBuilder/builder/*.old
+/sdk/tools/ContentBuilder/builder/update_hosts_cached.vdf
+/sdk/tools/ContentBuilder/dumps/
+
+# DUMBAI: These runtime DLLs are installed by SteamCMD's updater; preserve their local copies without tracking them.
+/sdk/tools/ContentBuilder/builder/steamclient.dll
+/sdk/tools/ContentBuilder/builder/steamclient64.dll
+/sdk/tools/ContentBuilder/builder/siteserverui/win32/node.dll
