@@ -154,6 +154,8 @@ main :: proc() {
                 println(&finalBuf, "package steamworks")
                 println(&finalBuf, "import \"core:c\"")
                 println(&finalBuf, "foreign import lib \"steam_api.lib\"")
+                println(&finalBuf, "CALLBACK_PACK_LARGE :: #config(STEAMWORKS_CALLBACK_PACK_LARGE, ODIN_OS == .Windows)")
+                println(&finalBuf, "CALLBACK_ALIGN :: 8 when CALLBACK_PACK_LARGE else 4")
                 println(&finalBuf)
 
                 println(&finalBuf, strings.to_string(buf))
@@ -271,10 +273,41 @@ printEnum :: proc(buf: ^strings.Builder, classname: string, enum_: json.Object) 
     println(buf)
 }
 
+structLayout :: proc(name: string) -> string {
+    switch name {
+    case "SteamIPAddress_t", "InputAnalogActionData_t", "InputDigitalActionData_t", "InputMotionData_t",
+         "SteamInputActionEvent_t", "SteamNetworkingIPAddr", "SteamNetworkingIdentity",
+         "GameLobbyJoinRequested_t", "GameRichPresenceJoinRequested_t", "GameConnectedChatJoin_t",
+         "GameConnectedChatLeave_t", "EquippedProfileItemsChanged_t", "UserStatsUnloaded_t",
+         "P2PSessionRequest_t", "P2PSessionConnectFail_t", "SteamNetworkingMessagesSessionFailed_t",
+         "GSClientApprove_t", "GSClientGroupStatus_t", "GSStatsUnloaded_t":
+        return "#packed"
+    case "ValidateAuthTicketResponse_t", "AvatarImageLoaded_t", "ClanOfficerListResponse_t",
+         "FriendRichPresenceUpdate_t", "GameConnectedClanChatMsg_t", "JoinClanChatRoomCompletionResult_t",
+         "GameConnectedFriendChatMsg_t", "FriendsGetFollowerCount_t", "FriendsIsFollowing_t",
+         "FriendsEnumerateFollowingList_t", "EquippedProfileItems_t", "SocketStatusCallback_t",
+         "SteamInventoryEligiblePromoItemDefIDs_t", "GSClientDeny_t", "GSClientKick_t",
+         "ComputeNewPlayerCompatibilityResult_t", "GSStatsReceived_t", "GSStatsStored_t",
+         "FriendGameInfo_t", "gameserveritem_t":
+        return "#max_field_align(4)"
+    case "SteamNetworkingMessage_t", "SteamNetworkingConfigValue_t", "MatchMakingKeyValuePair_t", "servernetadr_t":
+        return ""
+    case "UserStatsReceived_t", "SteamDatagramHostedAddress", "SteamDatagramGameCoordinatorServerLogin":
+        return "#align(CALLBACK_ALIGN)"
+    }
+    return "#max_field_align(CALLBACK_ALIGN)"
+}
+
 printStruct :: proc(buf: ^strings.Builder, methodBuf: ^strings.Builder, struct_: json.Object) {
     name := struct_["struct"].(json.String)
 
-    println(buf, name, ":: struct #packed {")
+    println(buf, name, ":: struct ", structLayout(name), " {")
+
+    if name == "UserStatsReceived_t" {
+        println(buf, INDENT, "using payload: struct #max_field_align(4) {")
+    }
+
+    if len(struct_["fields"].(json.Array)) == 0 do println(buf, INDENT, "_reserved: u8,")
 
     for field in struct_["fields"].(json.Array) {
         field := field.(json.Object)
@@ -286,6 +319,8 @@ printStruct :: proc(buf: ^strings.Builder, methodBuf: ^strings.Builder, struct_:
         print(buf, convType(fieldtype))
         println(buf, ",")
     }
+
+    if name == "UserStatsReceived_t" do println(buf, INDENT, "},")
 
     println(buf, "}")
     println(buf)
