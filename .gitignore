@@ -19,3 +19,7 @@
 /sdk/tools/ContentBuilder/builder/steamclient.dll
 /sdk/tools/ContentBuilder/builder/steamclient64.dll
 /sdk/tools/ContentBuilder/builder/siteserverui/win32/node.dll
+
+# DUMBAI: Keep the SDK bootstrap immutable; SteamCMD self-updates and writes state in the active macOS directory.
+/sdk/tools/ContentBuilder/builder/macos/
+/sdk/tools/ContentBuilder/builder/Frameworks

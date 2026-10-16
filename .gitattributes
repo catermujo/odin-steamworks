@@ -1,0 +1,2 @@
+# DUMBAI: Preserve SDK bootstrap bytes, including signed framework resources, under any autocrlf setting.
+/sdk/tools/ContentBuilder/builder/macos-bootstrap/** -text
