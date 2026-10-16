@@ -824,9 +824,11 @@ RemoteStoragePublishedFileUpdated :: struct #align (CALLBACK_ALIGN) {
     ulUnused:         u64,
 }
 
-RemoteStorageFileWriteAsyncComplete :: struct #align (CALLBACK_ALIGN) {
+RemoteStorageFileWriteAsyncComplete :: struct {
     eResult: EResult,
 }
+#assert(size_of(RemoteStorageFileWriteAsyncComplete) == size_of(EResult))
+#assert(align_of(RemoteStorageFileWriteAsyncComplete) == align_of(EResult))
 
 RemoteStorageFileReadAsyncComplete :: struct #align (CALLBACK_ALIGN) {
     hFileReadAsync: SteamAPICall,
