@@ -5943,13 +5943,13 @@ foreign lib {
 
     // Starts a timeline event at a the current time, plus an offset in seconds. This event must be ended with EndRangeTimelineEvent.
     // Any timeline events that have not been ended when the game exits will be discarded.
-    Timeline_StartRangeTimelineEvent :: proc(pchTitle: cstring, pchDescription: cstring, pchIcon: cstring, unPriority: u32, flStartOffsetSeconds: f32, ePossibleClip: ETimelineEventClipPriority) -> TimelineEventHandle ---
+    Timeline_StartRangeTimelineEvent :: proc(self: ^ITimeline, pchTitle: cstring, pchDescription: cstring, pchIcon: cstring, unPriority: u32, flStartOffsetSeconds: f32, ePossibleClip: ETimelineEventClipPriority) -> TimelineEventHandle ---
 
     // Updates fields on a range timeline event that was started with StartRangeTimelineEvent, and which has not been ended.
     Timeline_UpdateRangeTimelineEvent :: proc(ulEvent: TimelineEventHandle, pchTitle: cstring, pchDescription: cstring, pchIcon: cstring, unPriority: u32, ePossibleClip: ETimelineEventClipPriority) ---
 
     // Ends a range timeline event and shows it in the UI.
-    Timeline_EndRangeTimelineEvent :: proc(ulEvent: TimelineEventHandle, flEndOffsetSeconds: f32) ---
+    Timeline_EndRangeTimelineEvent :: proc(self: ^ITimeline, ulEvent: TimelineEventHandle, flEndOffsetSeconds: f32) ---
 
     // delete the event from the timeline. This can be called on a timeline event from AddInstantaneousTimelineEvent,
     // AddRangeTimelineEvent, or StartRangeTimelineEvent/EndRangeTimelineEvent. The timeline event handle must be from the
